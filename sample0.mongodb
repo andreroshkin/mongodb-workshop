@@ -1,0 +1,4 @@
+use('mongodbworkshop');
+db.createCollection('users');
+db.createCollection('sales');
+

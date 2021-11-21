@@ -1,0 +1,287 @@
+\documentclass{beamer}
+
+\mode<presentation> {
+\usetheme{Madrid}
+}
+
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{listings}
+
+\usepackage[T1,T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english,russian]{babel}
+\usepackage{tempora}
+
+\lstset{
+  basicstyle=\fontsize{11}{13}\selectfont\ttfamily
+}
+
+\title[MongoDB]{MongoDB}
+
+\author{Андрей Ерошкин}
+\date{\today}
+
+\begin{document}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+\begin{frame}
+\frametitle{Overview}
+\tableofcontents
+\end{frame}
+
+\section{Обзор базы}
+
+\begin{frame}
+\frametitle{Устройство базы данных. Документы}
+В отличие от реляционных баз данных MongoDB предлагает документо-ориентированную модель данных, благодаря чему MongoDB работает быстрее, обладает лучшей масштабируемостью, ее легче использовать.
+
+Для хранения в MongoDB применяется формат, который называется BSON или сокращение от binary JSON. Способ хранения данных в MongoDB в похож на JSON. 
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Устройство базы данных. Документы}
+Если реляционные базы данных хранят строки, то MongoDB хранит документы. В отличие от строк документы могут хранить сложную по структуре информацию. Документ можно представить как хранилище ключей и значений.
+
+В MongoDB для каждого документа имеется уникальный идентификатор, который называется \_id. И если явным образом не указать его значение, то MongoDB автоматически сгенерирует для него значение.
+\end{frame}
+
+\begin{frame}
+\frametitle{Устройство базы данных. Документы}
+Каждому ключу сопоставляется определенное значение. Но здесь также надо учитывать одну особенность: если в реляционных базах есть четко очерченная структура, где есть поля, и если какое-то поле не имеет значение, ему можно присвоить значение NULL. В MongoDB все иначе. Если какому-то ключу не сопоставлено значение, то этот ключ просто опускается в документе и не употребляется.
+
+Если в традиционном мире SQL есть таблицы, то в мире MongoDB есть коллекции. И если в реляционных БД таблицы хранят однотипные жестко структурированные объекты, то в коллекции могут содержать самые разные объекты, имеющие различную структуру и различный набор свойств.
+\end{frame}
+
+\begin{frame}
+\frametitle{Устройство базы данных. Документы}
+Всего имеется следующие типы значений:
+
+\begin{itemize}
+\item String: строковый тип данных, как в приведенном выше примере (для строк используется кодировка UTF-8)
+\item Array (массив): тип данных для хранения массивов элементов
+\item Binary data (двоичные данные): тип для хранения данных в бинарном формате
+\item Boolean: булевый тип данных, хранящий логические значения TRUE или FALSE, например, {"married": FALSE}
+\item Date: хранит дату в формате времени Unix
+\item Double: числовой тип данных для хранения чисел с плавающей точкой
+\item Integer: используется для хранения целочисленных значений размером 32 бита, например, {"age": 29}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Устройство базы данных. Документы}    
+\begin{itemize}
+\item Long: используется для хранения целочисленных значений размером 64 бита
+\item JavaScript: тип данных для хранения кода javascript
+\item Min key/Max key: используются для сравнения значений с наименьшим/наибольшим элементов BSON
+\item Null: тип данных для хранения значения Null
+\item Object: строковый тип данных, как в приведенном выше примере
+\item ObjectId: тип данных для хранения id документа
+\item Regular expression: применяется для хранения регулярных выражений
+\item Decimal128: тип данных для хранения десятичных дробных чисел размером 128 бит, которые позволяют решить проблемы с проблемой точности вычислений при использовании дробных чисел, которые представляют тип Double.
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Добавление данных}
+Для добавления в коллекцию могут использоваться три ее метода:
+
+insertOne(): добавляет один документ
+
+insertMany(): добавляет несколько документов
+
+insert(): может добавлять как один, так и несколько документов
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{Выборка из БД}
+
+Чтобы извлечь все документы из коллекции:
+\begin{lstlisting}
+db.users.find()
+\end{lstlisting}
+
+Функция findOne() работает похожим образом, только возвращает один документ:
+\begin{lstlisting}
+db.users.findOne()
+\end{lstlisting}
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Фильтрация данных}
+Выведем все документы, в которых name=Tom:
+\begin{lstlisting}
+db.users.find({name: "Tom"})
+\end{lstlisting}
+
+Усложним запрос и получим те документы, у которых в массиве languages одновременно два языка: "english" и "german":
+\begin{lstlisting}
+db.users.find({languages: ["english", "german"]})
+\end{lstlisting}
+
+И чтобы найти все документы, у которых в ключе company вложенное свойство name=microsoft, нам надо использовать оператор точку:
+\begin{lstlisting}
+db.users.find({"company.name": "Microsoft"})
+\end{lstlisting}
+
+MongoDB предоставляет замечательную возможность, создавать запросы, используя язык JavaScript. Например, создадим запрос, возвращающий те документы, в которых name=Tom. Для этого сначала объявляется функция:
+
+\begin{lstlisting}
+fn = function() { return this.name=="Tom"; }
+db.users.find(fn)
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Выборка из БД}
+Функция limit. Она задает максимально допустимое количество получаемых документов.
+\begin{lstlisting}
+db.users.find().limit(3)
+\end{lstlisting}
+
+Пропустим первые три записи:
+\begin{lstlisting}
+db.users.find().skip(3)
+\end{lstlisting}
+
+MongoDB предоствляет возможности отсортировать полученный из бд набор данных с помощью функции sort. Передавая в эту функцию значения 1 или -1, мы можем указать в каком порядке сортировать: по возрастанию (1) или по убыванию (-1).
+\begin{lstlisting}
+db.users.find().sort({name: 1})
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Команды группировки}
+С помощью функции count() можно получить число элементов в коллекции
+\begin{lstlisting}
+db.users.find({name: "Tom"}).count()
+\end{lstlisting}
+
+Только уникальные различающиеся значения для одного из полей документа:
+\begin{lstlisting}
+db.users.distinct("name")
+["Tom", "Bill", "Bob"]
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Операторы выборки}
+Условные операторы задают условие, которому должно соответствовать значение поля документа:
+
+\begin{itemize}
+\item \$eq (равно)
+\item \$ne (не равно)
+\item \$gt (больше чем)
+\item \$lt (меньше чем)
+\item \$gte (больше или равно)
+\item \$lte (меньше или равно)
+\item \$in определяет массив значений, одно из которых должно иметь поле документа
+\item \$nin определяет массив значений, которые не должно иметь поле документа
+\end{itemize}
+
+\begin{lstlisting}
+db.users.find ({age: {$lt : 30}})
+\end{lstlisting}
+\end{frame}    
+
+\begin{frame}[fragile]
+\frametitle{Операторы выборки}
+Логические операторы выполняются над условиями выборки:
+\begin{itemize}
+\item \$or: соединяет два условия, и документ должен соответствовать одному из этих условий
+\item \$and: соединяет два условия, и документ должен соответствовать обоим условиям
+\item \$not: документ должен НЕ соответствовать условию
+\item \$nor: соединяет два условия, и документ должен НЕ соответстовать обоим условиям
+\end{itemize}
+
+\begin{lstlisting}
+db.users.find (
+    {$or : [{name: "Tom"}, {age: 22}]}
+)
+\end{lstlisting}
+\end{frame}    
+
+\begin{frame}[fragile]
+\frametitle{Обновление данных}
+Если нам надо полностью заменить один документ другим, также может использоваться функция replaceOne:
+\begin{lstlisting}
+db.users.replaceOne(
+    {name: "Bob"}, {name: "Bob", age: 25}
+)
+\end{lstlisting}
+
+Часто не требуется обновлять весь документ, а только значение одного или нескольких его свойств. Для этого применяются функции updateOne() - она обновляет только один документ и updateMany() - позволяет обновить множество документов.
+\end{frame}  
+
+\begin{frame}[fragile]
+\begin{lstlisting}
+db.users.updateOne(
+    {name : "Tom", age: 25}, 
+    {$set: {age : 28}}
+)
+\end{lstlisting}
+
+\begin{lstlisting}
+db.users.updateOne(
+    {name : "Tom"}, {$unset: {salary: 1}}
+)
+\end{lstlisting}
+
+\begin{lstlisting}
+db.users.updateOne(
+    {name : "Tom"}, {$push: {languages: "russian"}}
+)
+\end{lstlisting}
+\end{frame}   
+
+\begin{frame}[fragile]
+\frametitle{Обновление данных}
+Для удаления документов в MongoDB предусмотрены функции deleteOne() - удаляет один документ и deleteMany() - позволяет удалить несколько документов.
+
+\begin{lstlisting}
+db.users.deleteOne({name : "Tom"})
+\end{lstlisting}
+
+Для удаления всех документов, которые соответствуют фильтруб применяется функция deleteMany():
+\begin{lstlisting}
+db.users.deleteMany({name : "Tom"})
+\end{lstlisting}
+\end{frame}   
+
+
+\begin{frame}[fragile]
+\frametitle{Агрегация}
+Агрегация – это группировка значений многих документов. Операции агрегирования позволяют манипулировать такими сгруппированными данными     
+
+\begin{lstlisting}
+db.developers.aggregate( 
+    [ 
+        {$group :
+        { 
+            _id : "Developers",
+            total_salary: { $sum : "$salary" }
+        }} 
+    ] 
+)
+{ "_id" : "Developers", "total_salary" : 10500 }
+\end{lstlisting}
+\end{frame}   
+
+\section{Инструменты}
+\begin{frame}
+\frametitle{Работа с данными в MongoDB Compass}
+Для работы с MongoDB также можно использовать официальный графический клиент MongoDB Compass.
+\end{frame}   
+
+\begin{frame}
+\frametitle{ODM}
+Mongoose представляет специальную ODM-библиотеку (Object Data Modelling) для работы с MongoDB, которая позволяет сопоставлять объекты классов и документы коллекций из базы данных.
+\end{frame}   
+
+\end{document} 
